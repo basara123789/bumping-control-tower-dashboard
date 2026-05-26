@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bumping Smart Manufacturing Control Tower</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="titlebar">
+        <div>
+          <p class="eyebrow">Bumping Factory / DRY WET1 WET2</p>
+          <h1>Production KPI Overview</h1>
+        </div>
+        <div class="title-actions">
+          <span class="clock" id="clock">--:--:--</span>
+          <span class="live-pill"><i></i>Live Demo</span>
+        </div>
+      </header>
+
+      <section class="control-strip">
+        <div class="segment" id="typeFilters" aria-label="machine type filter">
+          <button class="active" data-type="ALL">ALL</button>
+          <button data-type="DRY">DRY</button>
+          <button data-type="WET1">WET1</button>
+          <button data-type="WET2">WET2</button>
+        </div>
+        <div class="demo-controls">
+          <button id="togglePlay">Pause</button>
+          <button id="alarmBurst">Alarm Burst</button>
+          <button id="simulateDown">Simulate Down</button>
+          <button id="shiftToggle">Day Shift</button>
+          <label>
+            Speed
+            <input id="speedRange" type="range" min="600" max="2600" step="200" value="1200" />
+          </label>
+        </div>
+      </section>
+
+      <section class="kpi-strip" id="kpiStrip"></section>
+
+      <section class="main-grid">
+        <article class="panel factory-panel">
+          <div class="panel-header">
+            <h2>Factory Layout</h2>
+            <div class="legend">
+              <span><i class="status-dot running"></i>Running</span>
+              <span><i class="status-dot idle"></i>Idle</span>
+              <span><i class="status-dot warning"></i>Warning</span>
+              <span><i class="status-dot down"></i>Down</span>
+            </div>
+          </div>
+          <div class="factory-scene" id="factoryScene">
+            <div class="floor-grid"></div>
+            <div class="tooltip" id="machineTooltip"></div>
+          </div>
+        </article>
+
+        <article class="panel equipment-panel">
+          <div class="panel-header">
+            <h2>Equipment Status</h2>
+            <button class="ghost-button" id="cycleMachine">Next Tool</button>
+          </div>
+          <div class="equipment-summary">
+            <div>
+              <p class="machine-name" id="machineName">COATER 01</p>
+              <p class="running-line"><span class="pulse-dot" id="machineStateDot"></span><span id="machineState">Running</span></p>
+              <dl>
+                <div><dt>Run Time</dt><dd id="runTime">12h 45m</dd></div>
+                <div><dt>Last PM</dt><dd id="lastPm">5 Days Ago</dd></div>
+                <div><dt>Lot Type</dt><dd id="lotType">DRY</dd></div>
+                <div><dt>UPH / Yield</dt><dd id="toolKpi">820 / 98.5%</dd></div>
+              </dl>
+            </div>
+            <div class="machine-iso" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <h3>UPH / Yield Trend</h3>
+          <div class="dual-chart">
+            <canvas id="alarmTrend"></canvas>
+            <canvas id="alarmBars"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Facility & Energy</h2><span class="chart-note">CDA / DI / Power</span></div>
+          <div class="stacked-charts">
+            <canvas id="energyMixed"></canvas>
+            <canvas id="utilityArea"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Environmental Monitoring</h2><span class="chart-note">Temp / RH / Pressure</span></div>
+          <div class="env-metrics">
+            <span><b id="tempValue">23.5</b> degC</span>
+            <span><b id="humidValue">45</b>%</span>
+            <span><b id="pressureValue">-10</b> Pa</span>
+          </div>
+          <div class="env-row">
+            <canvas id="gaugeChart"></canvas>
+            <canvas id="miniCombo"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Risk Heatmap</h2><span class="chart-note">Tool risk by hour</span></div>
+          <canvas id="environmentStatus"></canvas>
+          <canvas id="sparkArea"></canvas>
+        </article>
+
+        <article class="panel workforce-panel">
+          <div class="panel-header"><h2>Workforce Status</h2><span class="chart-note" id="shiftLabel">Day Shift</span></div>
+          <div class="workforce">
+            <div class="people-list" id="peopleList"></div>
+            <canvas id="donutChart"></canvas>
+          </div>
+        </article>
+
+        <article class="panel event-panel">
+          <div class="panel-header"><h2>Live Event Stream</h2><span class="chart-note">MES / EAP ready</span></div>
+          <div class="event-list" id="eventList"></div>
+        </article>
+
+        <article class="panel table-panel">
+          <div class="panel-header"><h2>Alarm & ACK Tracking</h2></div>
+          <table>
+            <thead>
+              <tr><th>Alarm Type</th><th>Tool</th><th>Start</th><th>Owner</th><th>Status</th></tr>
+            </thead>
+            <tbody id="alarmTable"></tbody>
+          </table>
+        </article>
+
+        <article class="panel analytics-panel">
+          <div class="panel-header"><h2>AI & Analytics</h2><span class="chart-note">Health scoring</span></div>
+          <div class="analytics-actions">
+            <button>Predictive Maintenance</button>
+            <button>Failure Prediction</button>
+            <button>Yield Analysis</button>
+            <button>Parameter Drift</button>
+          </div>
+          <canvas id="radarChart"></canvas>
+        </article>
+      </section>
+
+      <footer>Smart Manufacturing Control Tower</footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
