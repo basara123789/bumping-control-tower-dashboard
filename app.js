@@ -70,6 +70,7 @@ const simulationState = {
   speed: SIMULATION.DEFAULT_SPEED,
   alarmBoostUntil: 0,
   snapshots: [],
+  filteredSnapshots: [],
   events: []
 };
 
@@ -85,7 +86,6 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const wave = (base, amp, speed, phase = 0) => base + Math.sin(simulationState.tick * speed + phase) * amp;
 const average = values => values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
 const visibleMachineConfigs = () => machineConfig.filter(machine => uiState.filter === "ALL" || machine.type === uiState.filter);
-const visibleSnapshots = () => simulationState.snapshots.filter(machine => uiState.filter === "ALL" || machine.type === uiState.filter);
 
 function calculateMachineSnapshot(machine, index) {
   const phase = machine.statusSeed + index * 0.7;
@@ -121,70 +121,136 @@ function refreshMachineSnapshots() {
   simulationState.snapshots = machineConfig.map(calculateMachineSnapshot);
 }
 
-function generateMockDashboardData() {
-  const scoped = visibleSnapshots();
+function refreshDerivedState() {
+  simulationState.filteredSnapshots = simulationState.snapshots.filter(machine => uiState.filter === "ALL" || machine.type === uiState.filter);
+}
+
+function advanceSimulation() {
+  simulationState.tick += 1;
+  refreshMachineSnapshots();
+  refreshDerivedState();
+
+  if (simulationState.tick % SIMULATION.EVENT_EVERY_TICKS === 0) {
+    const risky = [...simulationState.snapshots].sort((a, b) => b.risk - a.risk)[0];
+    addEvent(risky.status === "Running" ? "ok" : risky.status === "Warning" ? "warn" : risky.status === "Down" ? "hot" : "ack", risky);
+  }
+}
+
+function buildDashboardContext() {
+  const scoped = simulationState.filteredSnapshots;
   const selected = simulationState.snapshots[uiState.selectedMachine] || scoped[0] || simulationState.snapshots[0];
   const alarmTotal = scoped.reduce((sum, machine) => sum + machine.alarms, 0);
   const health = 100 - average(scoped.map(machine => machine.risk)) * 0.42;
+  return {
+    alarmTotal,
+    health,
+    scoped,
+    selected
+  };
+}
+
+function buildEquipment(context) {
+  return {
+    ...context.selected,
+    runTime: `${10 + (simulationState.tick + uiState.selectedMachine) % 7}h ${String(24 + (simulationState.tick * 3) % 36).padStart(2, "0")}m`,
+    lastPm: `${3 + (uiState.selectedMachine % 5)} Days Ago`
+  };
+}
+
+function buildKpis(context) {
+  const { alarmTotal, health, scoped } = context;
+  return [
+    { label: "UPH", value: Math.round(average(scoped.map(machine => machine.uph))), unit: "", trend: "+3.2%" },
+    { label: "OEE", value: clamp(average(scoped.map(machine => machine.util)) + 5, 0, 99).toFixed(1), unit: "%", trend: "+1.1%" },
+    { label: "Yield", value: average(scoped.map(machine => machine.yield)).toFixed(1), unit: "%", trend: "+0.4%" },
+    { label: "Utilization", value: Math.round(average(scoped.map(machine => machine.util))), unit: "%", trend: uiState.shift },
+    { label: "Alarms", value: alarmTotal, unit: "", trend: alarmTotal > 12 ? "High" : "Normal" },
+    { label: "AI Health", value: Math.round(health), unit: "%", trend: health > 78 ? "Stable" : "Watch" }
+  ];
+}
+
+function buildTrends(context) {
+  const { selected } = context;
+  return Array.from({ length: 12 }, (_, i) => ({
+    uph: selected.uph * (0.92 + Math.sin(simulationState.tick * SIMULATION.STATUS_WAVE_SPEED + i * 0.44) * 0.06),
+    yield: selected.yield + Math.sin(simulationState.tick * 0.15 + i * 0.5) * 0.7,
+    alarm: 6 + selected.alarms * 5 + Math.abs(Math.sin(simulationState.tick * 0.3 + i * 0.8)) * 30
+  }));
+}
+
+function buildEnergy(context) {
+  const scopedCount = context.scoped.length;
+  return {
+    energy: Array.from({ length: 12 }, (_, i) => ({
+      bar: 28 + Math.abs(Math.sin(simulationState.tick * 0.22 + i * 0.65)) * 46 + scopedCount * 2,
+      line: 58 - i * 1.8 + Math.sin(simulationState.tick * 0.16 + i) * 7
+    })),
+    utility: Array.from({ length: 18 }, (_, i) => 24 + Math.sin(simulationState.tick * 0.2 + i * 0.45) * 8 + i * 1.25 + scopedCount)
+  };
+}
+
+function buildEnvironment(context) {
+  const { scoped, selected } = context;
+  return {
+    temp: wave(23.5, 0.7, 0.2).toFixed(1),
+    humidity: Math.round(wave(45, 4, 0.14)),
+    pressure: Math.round(wave(-10, 3, 0.26)),
+    gauge: clamp(selected.util, 0, 100),
+    bars: Array.from({ length: 16 }, (_, i) => 18 + Math.abs(Math.sin(simulationState.tick * SIMULATION.RISK_WAVE_SPEED + i * 0.7)) * 46),
+    riskRows: scoped.map((machine, row) => Array.from({ length: 10 }, (_, col) => clamp(machine.risk + Math.sin(simulationState.tick * 0.19 + row + col * 0.6) * 18, 0, 100))),
+    spark: scoped.map(machine => machine.risk)
+  };
+}
+
+function buildWorkforce() {
+  return [
+    { label: "Online", value: Math.round(wave(uiState.shift === "Day" ? 45 : 31, 3, 0.12)), color: palette.cyan },
+    { label: "No Badge", value: Math.round(wave(9, 2, 0.35)), color: palette.blue },
+    { label: "Assist", value: Math.round(wave(3, 1, 0.28)), color: palette.violet },
+    { label: "Support", value: Math.round(wave(uiState.shift === "Day" ? 12 : 7, 2, 0.18)), color: palette.orange }
+  ];
+}
+
+function buildAlarmTable(context) {
+  return context.scoped.slice(0, 5).map((machine, index) => [
+    machine.status === "Down" ? "Tool Down" : machine.status === "Warning" ? "Parameter Drift" : machine.alarms > 2 ? "ACK Timeout" : "Monitor",
+    machine.id,
+    `${String(8 + index + (simulationState.tick % 8)).padStart(2, "0")}:${String((simulationState.tick * 7 + index * 9) % 60).padStart(2, "0")}`,
+    machine.type,
+    machine.status === "Running" ? "Normal" : machine.status,
+    machine.status === "Down" ? "hot" : machine.status === "Warning" ? "warn" : machine.status === "Idle" ? "ack" : "ok"
+  ]);
+}
+
+function buildAnalytics(context) {
+  const { selected } = context;
+  return [
+    82 - selected.alarms * 3 + Math.sin(simulationState.tick * 0.2) * 4,
+    72 + Math.cos(simulationState.tick * 0.16) * 8 - selected.risk * 0.1,
+    selected.yield,
+    88 - Math.max(0, selected.risk - 35) * 0.35,
+    selected.status === "Down" ? 45 : selected.status === "Warning" ? 66 : 86
+  ].map(value => clamp(value, 0, 100));
+}
+
+function generateMockDashboardData() {
+  const context = buildDashboardContext();
+  const energyData = buildEnergy(context);
 
   return {
     endpoints: API_ENDPOINTS,
     machines: simulationState.snapshots,
-    scopedMachines: scoped,
-    machine: {
-      ...selected,
-      runTime: `${10 + (simulationState.tick + uiState.selectedMachine) % 7}h ${String(24 + (simulationState.tick * 3) % 36).padStart(2, "0")}m`,
-      lastPm: `${3 + (uiState.selectedMachine % 5)} Days Ago`
-    },
-    kpis: [
-      { label: "UPH", value: Math.round(average(scoped.map(machine => machine.uph))), unit: "", trend: "+3.2%" },
-      { label: "OEE", value: clamp(average(scoped.map(machine => machine.util)) + 5, 0, 99).toFixed(1), unit: "%", trend: "+1.1%" },
-      { label: "Yield", value: average(scoped.map(machine => machine.yield)).toFixed(1), unit: "%", trend: "+0.4%" },
-      { label: "Utilization", value: Math.round(average(scoped.map(machine => machine.util))), unit: "%", trend: uiState.shift },
-      { label: "Alarms", value: alarmTotal, unit: "", trend: alarmTotal > 12 ? "High" : "Normal" },
-      { label: "AI Health", value: Math.round(health), unit: "%", trend: health > 78 ? "Stable" : "Watch" }
-    ],
-    trends: Array.from({ length: 12 }, (_, i) => ({
-      uph: selected.uph * (0.92 + Math.sin(simulationState.tick * SIMULATION.STATUS_WAVE_SPEED + i * 0.44) * 0.06),
-      yield: selected.yield + Math.sin(simulationState.tick * 0.15 + i * 0.5) * 0.7,
-      alarm: 6 + selected.alarms * 5 + Math.abs(Math.sin(simulationState.tick * 0.3 + i * 0.8)) * 30
-    })),
-    energy: Array.from({ length: 12 }, (_, i) => ({
-      bar: 28 + Math.abs(Math.sin(simulationState.tick * 0.22 + i * 0.65)) * 46 + scoped.length * 2,
-      line: 58 - i * 1.8 + Math.sin(simulationState.tick * 0.16 + i) * 7
-    })),
-    utility: Array.from({ length: 18 }, (_, i) => 24 + Math.sin(simulationState.tick * 0.2 + i * 0.45) * 8 + i * 1.25 + scoped.length),
-    environment: {
-      temp: wave(23.5, 0.7, 0.2).toFixed(1),
-      humidity: Math.round(wave(45, 4, 0.14)),
-      pressure: Math.round(wave(-10, 3, 0.26)),
-      gauge: clamp(selected.util, 0, 100),
-      bars: Array.from({ length: 16 }, (_, i) => 18 + Math.abs(Math.sin(simulationState.tick * SIMULATION.RISK_WAVE_SPEED + i * 0.7)) * 46),
-      riskRows: scoped.map((machine, row) => Array.from({ length: 10 }, (_, col) => clamp(machine.risk + Math.sin(simulationState.tick * 0.19 + row + col * 0.6) * 18, 0, 100))),
-      spark: scoped.map(machine => machine.risk)
-    },
-    workforce: [
-      { label: "Online", value: Math.round(wave(uiState.shift === "Day" ? 45 : 31, 3, 0.12)), color: palette.cyan },
-      { label: "No Badge", value: Math.round(wave(9, 2, 0.35)), color: palette.blue },
-      { label: "Assist", value: Math.round(wave(3, 1, 0.28)), color: palette.violet },
-      { label: "Support", value: Math.round(wave(uiState.shift === "Day" ? 12 : 7, 2, 0.18)), color: palette.orange }
-    ],
-    table: scoped.slice(0, 5).map((machine, index) => [
-      machine.status === "Down" ? "Tool Down" : machine.status === "Warning" ? "Parameter Drift" : machine.alarms > 2 ? "ACK Timeout" : "Monitor",
-      machine.id,
-      `${String(8 + index + (simulationState.tick % 8)).padStart(2, "0")}:${String((simulationState.tick * 7 + index * 9) % 60).padStart(2, "0")}`,
-      machine.type,
-      machine.status === "Running" ? "Normal" : machine.status,
-      machine.status === "Down" ? "hot" : machine.status === "Warning" ? "warn" : machine.status === "Idle" ? "ack" : "ok"
-    ]),
+    scopedMachines: context.scoped,
+    machine: buildEquipment(context),
+    kpis: buildKpis(context),
+    trends: buildTrends(context),
+    energy: energyData.energy,
+    utility: energyData.utility,
+    environment: buildEnvironment(context),
+    workforce: buildWorkforce(),
+    table: buildAlarmTable(context),
     events: simulationState.events.slice(0, 5),
-    analytics: [
-      82 - selected.alarms * 3 + Math.sin(simulationState.tick * 0.2) * 4,
-      72 + Math.cos(simulationState.tick * 0.16) * 8 - selected.risk * 0.1,
-      selected.yield,
-      88 - Math.max(0, selected.risk - 35) * 0.35,
-      selected.status === "Down" ? 45 : selected.status === "Warning" ? 66 : 86
-    ].map(value => clamp(value, 0, 100))
+    analytics: buildAnalytics(context)
   };
 }
 
@@ -647,12 +713,7 @@ function renderFactory(data) {
 
 function step() {
   if (!simulationState.playing) return;
-  simulationState.tick += 1;
-  refreshMachineSnapshots();
-  if (simulationState.tick % SIMULATION.EVENT_EVERY_TICKS === 0) {
-    const risky = [...simulationState.snapshots].sort((a, b) => b.risk - a.risk)[0];
-    addEvent(risky.status === "Running" ? "ok" : risky.status === "Warning" ? "warn" : risky.status === "Down" ? "hot" : "ack", risky);
-  }
+  advanceSimulation();
   renderDashboard();
 }
 
@@ -692,6 +753,7 @@ function setupEvents() {
     if (!machines.includes(machineConfig[uiState.selectedMachine])) {
       uiState.selectedMachine = machineConfig.indexOf(machines[0]);
     }
+    refreshDerivedState();
     addEvent("ack", simulationState.snapshots[uiState.selectedMachine], `Filter switched to ${uiState.filter}`);
     renderDashboard();
   });
@@ -704,6 +766,7 @@ function setupEvents() {
   runtimeState.els.alarmBurst.addEventListener("click", () => {
     simulationState.alarmBoostUntil = simulationState.tick + SIMULATION.ALARM_BURST_TICKS;
     refreshMachineSnapshots();
+    refreshDerivedState();
     addEvent("hot", simulationState.snapshots[uiState.selectedMachine], "Simulated alarm burst");
     renderDashboard();
   });
@@ -711,6 +774,7 @@ function setupEvents() {
   runtimeState.els.simulateDown.addEventListener("click", () => {
     machineConfig[uiState.selectedMachine].forceDownUntil = simulationState.tick + SIMULATION.TOOL_DOWN_TICKS;
     refreshMachineSnapshots();
+    refreshDerivedState();
     addEvent("hot", simulationState.snapshots[uiState.selectedMachine], "Tool down simulation started");
     renderDashboard();
   });
@@ -745,6 +809,7 @@ function setupEvents() {
 function initDashboard() {
   cacheElements();
   refreshMachineSnapshots();
+  refreshDerivedState();
   setupFactory();
   setupCharts();
   setupEvents();
