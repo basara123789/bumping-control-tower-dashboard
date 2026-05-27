@@ -1,3 +1,817 @@
+<!doctype html>
+<!-- VERSION: bumping-dashboard-20260527-pipeline -->
+<!-- NO CHART.JS REQUIRED -->
+<!-- SINGLE FILE OFFLINE BUILD: copy this file only -->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bumping Smart Manufacturing Control Tower</title>
+    <style>
+:root {
+  color-scheme: light;
+  --ink: #1f2937;
+  --muted: #5f6b7a;
+  --line: rgba(109, 92, 49, 0.28);
+  --panel: rgba(255, 253, 235, 0.91);
+  --panel-head: rgba(232, 198, 105, 0.34);
+  --surface: rgba(255, 255, 255, 0.48);
+  --gold: #c99a2e;
+  --cyan: #00abc2;
+  --blue: #285fd4;
+  --pink: #d930a1;
+  --violet: #6f42c1;
+  --orange: #df7b22;
+  --green: #0b9f6a;
+  --red: #d64545;
+  --yellow: #d6a928;
+  font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(236, 241, 169, 0.92), rgba(250, 240, 198, 0.94) 40%, #f5f1e4),
+    repeating-linear-gradient(90deg, rgba(135, 117, 52, 0.08) 0 1px, transparent 1px 20px);
+  color: var(--ink);
+}
+
+.dashboard {
+  width: min(1440px, 100vw);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px 22px 12px;
+}
+
+.titlebar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 16px;
+  padding: 8px 4px 10px;
+  border-bottom: 2px solid rgba(172, 130, 43, 0.46);
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(24px, 2.35vw, 34px);
+  line-height: 1;
+}
+
+.title-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clock,
+.live-pill {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-weight: 800;
+}
+
+.live-pill i {
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+  animation: blink 1s infinite alternate;
+}
+
+.control-strip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.segment,
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+button {
+  min-height: 30px;
+  border: 1px solid rgba(82, 91, 105, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(229, 214, 157, 0.72));
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.04);
+}
+
+.segment button {
+  min-width: 58px;
+}
+
+.segment button.active,
+.demo-controls button.active {
+  color: white;
+  background: linear-gradient(180deg, #2455bd, #173d92);
+}
+
+.demo-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+input[type="range"] {
+  width: 120px;
+  accent-color: var(--blue);
+}
+
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 9px;
+  margin: 0 0 10px;
+}
+
+.kpi {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 251, 222, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.36);
+}
+
+.kpi span:first-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.kpi .value {
+  grid-row: span 2;
+  color: #233a92;
+  font-size: clamp(24px, 2.5vw, 34px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.kpi .trend {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.95fr 0.95fr;
+  grid-template-rows: 250px 178px 168px;
+  gap: 10px;
+}
+
+.panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 2px 10px rgba(83, 72, 42, 0.12);
+}
+
+.panel-header {
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 11px;
+  border-bottom: 1px solid rgba(128, 103, 44, 0.23);
+  background: var(--panel-head);
+}
+
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+h3 {
+  margin: 3px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chart-note {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.factory-panel {
+  grid-row: span 2;
+}
+
+.factory-scene {
+  position: relative;
+  height: calc(100% - 35px);
+  overflow: hidden;
+  perspective: 760px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.58), rgba(226, 198, 116, 0.28)),
+    repeating-linear-gradient(90deg, rgba(108,92,43,0.13) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, rgba(108,92,43,0.1) 0 1px, transparent 1px 34px);
+}
+
+.floor-grid {
+  position: absolute;
+  inset: 22px 16px;
+  transform: rotateX(58deg) rotateZ(-9deg) translateY(12px);
+  transform-origin: center;
+  border: 1px solid rgba(132, 109, 49, 0.15);
+}
+
+.tool {
+  position: absolute;
+  width: 116px;
+  height: 70px;
+  transform: rotateX(58deg) rotateZ(-9deg);
+  transform-style: preserve-3d;
+  cursor: pointer;
+  transition: opacity 0.18s ease, filter 0.18s ease;
+}
+
+.tool.dimmed {
+  opacity: 0.18;
+}
+
+.tool .roof {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #2f2c22, #8a7847);
+  border: 2px solid rgba(255, 238, 168, 0.65);
+  box-shadow: 0 16px 20px rgba(74, 53, 15, 0.22);
+}
+
+.tool .body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 56px;
+  height: 44px;
+  background: linear-gradient(180deg, #f5dd9a, #9c7734);
+  transform: rotateX(-90deg);
+  transform-origin: top;
+}
+
+.tool .label {
+  position: absolute;
+  left: 12px;
+  top: 34px;
+  z-index: 4;
+  max-width: 128px;
+  padding: 2px 7px;
+  color: #ffffff;
+  background: rgba(44, 58, 91, 0.84);
+  font-size: 12px;
+  font-weight: 900;
+  transform: rotateZ(8deg);
+  white-space: nowrap;
+}
+
+.tool .state-light {
+  position: absolute;
+  right: -5px;
+  top: -7px;
+  z-index: 6;
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.beacon {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  animation: blink 1.4s infinite alternate;
+}
+
+.beacon.cyan { background: var(--cyan); box-shadow: 0 0 16px var(--cyan); }
+.beacon.pink { background: var(--pink); box-shadow: 0 0 16px var(--pink); }
+.beacon.blue { background: var(--blue); box-shadow: 0 0 16px var(--blue); }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  margin-right: 4px;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+.running,
+.state-running { color: var(--green); background: var(--green); }
+.idle,
+.state-idle { color: var(--blue); background: var(--blue); }
+.warning,
+.state-warning { color: var(--yellow); background: var(--yellow); }
+.down,
+.state-down { color: var(--red); background: var(--red); }
+
+.tooltip {
+  position: absolute;
+  z-index: 20;
+  min-width: 170px;
+  display: none;
+  padding: 8px 10px;
+  border: 1px solid rgba(34, 43, 61, 0.28);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 20px rgba(43, 38, 27, 0.18);
+  font-size: 12px;
+  font-weight: 750;
+  pointer-events: none;
+}
+
+.tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.equipment-summary {
+  display: grid;
+  grid-template-columns: 1fr 145px;
+  gap: 8px;
+  padding: 8px 12px 2px;
+}
+
+.machine-name {
+  color: #9a3529;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.running-line {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #213989;
+  font-weight: 850;
+}
+
+.pulse-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 14px var(--green);
+  animation: blink 0.9s infinite alternate;
+}
+
+dl {
+  display: grid;
+  gap: 3px;
+  margin: 7px 0 0;
+}
+
+dl div {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+dt {
+  color: var(--muted);
+}
+
+dd {
+  margin: 0;
+}
+
+.machine-iso {
+  position: relative;
+  height: 84px;
+  transform: skewY(-8deg);
+}
+
+.machine-iso span {
+  position: absolute;
+  background: linear-gradient(135deg, #403925, #ad9051);
+  border: 2px solid rgba(255, 238, 190, 0.75);
+}
+
+.machine-iso span:nth-child(1) { inset: 8px 4px 24px 26px; }
+.machine-iso span:nth-child(2) { inset: 40px 16px 8px 2px; background: #ead28b; }
+.machine-iso span:nth-child(3) { inset: 20px 98px 18px 0; background: #f7e7ae; }
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.dual-chart {
+  height: 86px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 8px;
+  padding: 0 10px 8px;
+}
+
+.stacked-charts {
+  height: calc(100% - 35px);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  padding: 7px 10px 9px;
+}
+
+.env-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 8px 12px 3px;
+}
+
+.env-metrics span {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 3px;
+  min-height: 26px;
+  background: var(--surface);
+  font-weight: 800;
+}
+
+.env-metrics b {
+  color: #233a92;
+  font-size: 20px;
+}
+
+.env-row {
+  height: calc(100% - 76px);
+  display: grid;
+  grid-template-columns: 0.72fr 1fr;
+  gap: 8px;
+  padding: 3px 10px 9px;
+}
+
+.workforce {
+  height: calc(100% - 35px);
+  display: grid;
+  grid-template-columns: 0.72fr 1fr;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.people-list {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.people-list div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 800;
+}
+
+.people-list b {
+  color: #1264cb;
+  font-size: 26px;
+}
+
+.event-list {
+  height: calc(100% - 35px);
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 9px 10px;
+  overflow: hidden;
+}
+
+.event-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 27px;
+  padding: 5px 7px;
+  background: rgba(255, 255, 255, 0.43);
+  border-left: 4px solid var(--blue);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.event-item.warn { border-color: var(--yellow); }
+.event-item.hot { border-color: var(--red); }
+.event-item.ok { border-color: var(--green); }
+
+.table-panel table {
+  width: calc(100% - 14px);
+  margin: 7px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th,
+td {
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(112, 92, 48, 0.18);
+  text-align: left;
+  white-space: nowrap;
+}
+
+td.status span {
+  display: inline-block;
+  min-width: 72px;
+  padding: 2px 6px;
+  color: white;
+  text-align: center;
+  font-weight: 850;
+}
+
+.ok { background: var(--green); }
+.warn { background: var(--orange); }
+.ack { background: var(--blue); }
+.hot { background: var(--pink); }
+
+.analytics-panel {
+  display: grid;
+  grid-template-rows: 35px 72px 1fr;
+}
+
+.analytics-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  padding: 8px 10px 0;
+}
+
+.analytics-actions button {
+  min-height: 34px;
+}
+
+footer {
+  padding-top: 8px;
+  color: rgba(45, 52, 84, 0.72);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(27px, 3.2vw, 42px);
+  text-align: center;
+}
+
+@keyframes blink {
+  from { opacity: 0.48; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1.13); }
+}
+
+@media (max-width: 1050px) {
+  .dashboard {
+    padding: 12px;
+  }
+
+  .control-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .main-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 280px repeat(4, 190px);
+  }
+
+  .factory-panel {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .titlebar {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .title-actions {
+    justify-content: space-between;
+  }
+
+  .kpi-strip,
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .factory-panel {
+    grid-column: span 1;
+  }
+
+  .main-grid {
+    grid-template-rows: none;
+  }
+
+  .panel {
+    min-height: 190px;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="titlebar">
+        <div>
+          <p class="eyebrow">Bumping Factory / DRY WET1 WET2</p>
+          <h1>Production KPI Overview</h1>
+        </div>
+        <div class="title-actions">
+          <span class="clock" id="clock">--:--:--</span>
+          <span class="live-pill"><i></i>Live Demo</span>
+        </div>
+      </header>
+
+      <section class="control-strip">
+        <div class="segment" id="typeFilters" aria-label="machine type filter">
+          <button class="active" data-type="ALL">ALL</button>
+          <button data-type="DRY">DRY</button>
+          <button data-type="WET1">WET1</button>
+          <button data-type="WET2">WET2</button>
+        </div>
+        <div class="demo-controls">
+          <button id="togglePlay">Pause</button>
+          <button id="alarmBurst">Alarm Burst</button>
+          <button id="simulateDown">Simulate Down</button>
+          <button id="shiftToggle">Day Shift</button>
+          <label>
+            Speed
+            <input id="speedRange" type="range" min="600" max="2600" step="200" value="1200" />
+          </label>
+        </div>
+      </section>
+
+      <section class="kpi-strip" id="kpiStrip"></section>
+
+      <section class="main-grid">
+        <article class="panel factory-panel">
+          <div class="panel-header">
+            <h2>Factory Layout</h2>
+            <div class="legend">
+              <span><i class="status-dot running"></i>Running</span>
+              <span><i class="status-dot idle"></i>Idle</span>
+              <span><i class="status-dot warning"></i>Warning</span>
+              <span><i class="status-dot down"></i>Down</span>
+            </div>
+          </div>
+          <div class="factory-scene" id="factoryScene">
+            <div class="floor-grid"></div>
+            <div class="tooltip" id="machineTooltip"></div>
+          </div>
+        </article>
+
+        <article class="panel equipment-panel">
+          <div class="panel-header">
+            <h2>Equipment Status</h2>
+            <button class="ghost-button" id="cycleMachine">Next Tool</button>
+          </div>
+          <div class="equipment-summary">
+            <div>
+              <p class="machine-name" id="machineName">COATER 01</p>
+              <p class="running-line"><span class="pulse-dot" id="machineStateDot"></span><span id="machineState">Running</span></p>
+              <dl>
+                <div><dt>Run Time</dt><dd id="runTime">12h 45m</dd></div>
+                <div><dt>Last PM</dt><dd id="lastPm">5 Days Ago</dd></div>
+                <div><dt>Lot Type</dt><dd id="lotType">DRY</dd></div>
+                <div><dt>UPH / Yield</dt><dd id="toolKpi">820 / 98.5%</dd></div>
+              </dl>
+            </div>
+            <div class="machine-iso" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <h3>UPH / Yield Trend</h3>
+          <div class="dual-chart">
+            <canvas id="alarmTrend"></canvas>
+            <canvas id="alarmBars"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Facility & Energy</h2><span class="chart-note">CDA / DI / Power</span></div>
+          <div class="stacked-charts">
+            <canvas id="energyMixed"></canvas>
+            <canvas id="utilityArea"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Environmental Monitoring</h2><span class="chart-note">Temp / RH / Pressure</span></div>
+          <div class="env-metrics">
+            <span><b id="tempValue">23.5</b> degC</span>
+            <span><b id="humidValue">45</b>%</span>
+            <span><b id="pressureValue">-10</b> Pa</span>
+          </div>
+          <div class="env-row">
+            <canvas id="gaugeChart"></canvas>
+            <canvas id="miniCombo"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header"><h2>Risk Heatmap</h2><span class="chart-note">Tool risk by hour</span></div>
+          <canvas id="environmentStatus"></canvas>
+          <canvas id="sparkArea"></canvas>
+        </article>
+
+        <article class="panel workforce-panel">
+          <div class="panel-header"><h2>Workforce Status</h2><span class="chart-note" id="shiftLabel">Day Shift</span></div>
+          <div class="workforce">
+            <div class="people-list" id="peopleList"></div>
+            <canvas id="donutChart"></canvas>
+          </div>
+        </article>
+
+        <article class="panel event-panel">
+          <div class="panel-header"><h2>Live Event Stream</h2><span class="chart-note">MES / EAP ready</span></div>
+          <div class="event-list" id="eventList"></div>
+        </article>
+
+        <article class="panel table-panel">
+          <div class="panel-header"><h2>Alarm & ACK Tracking</h2></div>
+          <table>
+            <thead>
+              <tr><th>Alarm Type</th><th>Tool</th><th>Start</th><th>Owner</th><th>Status</th></tr>
+            </thead>
+            <tbody id="alarmTable"></tbody>
+          </table>
+        </article>
+
+        <article class="panel analytics-panel">
+          <div class="panel-header"><h2>AI & Analytics</h2><span class="chart-note">Health scoring</span></div>
+          <div class="analytics-actions">
+            <button>Predictive Maintenance</button>
+            <button>Failure Prediction</button>
+            <button>Yield Analysis</button>
+            <button>Parameter Drift</button>
+          </div>
+          <canvas id="radarChart"></canvas>
+        </article>
+      </section>
+
+      <footer>Smart Manufacturing Control Tower</footer>
+    </main>
+
+    <script>
 const API_ENDPOINTS = {
   kpis: "/api/kpi/overview",
   machines: "/api/bumping/machines",
@@ -823,3 +1637,7 @@ function initDashboard() {
 }
 
 initDashboard();
+
+</script>
+  </body>
+</html>

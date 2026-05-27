@@ -18,6 +18,14 @@ C:\Users\jake\Documents\Codex\2026-05-26\github-repo-python-github
 index.html
 ```
 
+如果要給內網搬運，優先使用單檔離線版：
+
+```text
+dist/dashboard.html
+```
+
+這個檔案已包含 HTML、CSS、JavaScript，不需要 Chart.js、CDN、npm 或 Python server。
+
 或用 Python 標準庫啟動本機伺服器：
 
 ```powershell
@@ -46,7 +54,21 @@ const endpointMap = {
 };
 ```
 
-未來接後端時，可以把 `api()` 改成 `fetch()` 這些 endpoint，再把回傳資料塞進原本的 render 流程。
+未來接後端時，可以把 `generateMockDashboardData()` 的資料來源逐步替換成 `fetch()` 這些 endpoint，再把回傳資料塞進原本的 render 流程。
+
+## 內網搬運
+
+請參考：
+
+```text
+TRANSFER.md
+```
+
+內網收到 `dashboard.html` 後，可用以下指令驗證沒有被改壞：
+
+```powershell
+python verify_dashboard.py dashboard.html
+```
 
 ## 已展示的圖表類型
 
