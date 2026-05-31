@@ -38,7 +38,7 @@ https://raw.githubusercontent.com/basara123789/bumping-control-tower-dashboard/m
 The correct file contains these markers near the top:
 
 ```html
-<!-- VERSION: bumping-dashboard-20260527-pipeline -->
+<!-- VERSION: bumping-dashboard-20260531-a1b1-layout -->
 <!-- NO CHART.JS REQUIRED -->
 <!-- SINGLE FILE OFFLINE BUILD: copy this file only -->
 ```

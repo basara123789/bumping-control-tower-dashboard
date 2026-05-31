@@ -183,8 +183,8 @@ input[type="range"] {
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1.35fr 0.95fr 0.95fr;
-  grid-template-rows: 250px 178px 168px;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 420px 190px 178px 168px;
   gap: 10px;
 }
 
@@ -232,99 +232,182 @@ h3 {
 }
 
 .factory-panel {
-  grid-row: span 2;
+  grid-column: 1 / -1;
 }
 
 .factory-scene {
   position: relative;
   height: calc(100% - 35px);
   overflow: hidden;
-  perspective: 760px;
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.58), rgba(226, 198, 116, 0.28)),
-    repeating-linear-gradient(90deg, rgba(108,92,43,0.13) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(0deg, rgba(108,92,43,0.1) 0 1px, transparent 1px 34px);
+    linear-gradient(135deg, rgba(255,255,255,0.72), rgba(220, 236, 210, 0.42)),
+    repeating-linear-gradient(90deg, rgba(108,92,43,0.08) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, rgba(108,92,43,0.08) 0 1px, transparent 1px 34px);
 }
 
-.floor-grid {
+.layout-map {
   position: absolute;
-  inset: 22px 16px;
-  transform: rotateX(58deg) rotateZ(-9deg) translateY(12px);
-  transform-origin: center;
-  border: 1px solid rgba(132, 109, 49, 0.15);
+  inset: 12px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 12px;
 }
 
-.tool {
-  position: absolute;
-  width: 116px;
-  height: 70px;
-  transform: rotateX(58deg) rotateZ(-9deg);
-  transform-style: preserve-3d;
-  cursor: pointer;
-  transition: opacity 0.18s ease, filter 0.18s ease;
+.layout-zone {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(37, 74, 138, 0.26);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.7), rgba(235, 242, 224, 0.62)),
+    repeating-linear-gradient(90deg, rgba(43, 54, 69, 0.06) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(0deg, rgba(43, 54, 69, 0.05) 0 1px, transparent 1px 28px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
 }
 
-.tool.dimmed {
-  opacity: 0.18;
+.layout-zone.b1 {
+  border-color: rgba(15, 102, 55, 0.32);
 }
 
-.tool .roof {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #2f2c22, #8a7847);
-  border: 2px solid rgba(255, 238, 168, 0.65);
-  box-shadow: 0 16px 20px rgba(74, 53, 15, 0.22);
-}
-
-.tool .body {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 56px;
-  height: 44px;
-  background: linear-gradient(180deg, #f5dd9a, #9c7734);
-  transform: rotateX(-90deg);
-  transform-origin: top;
-}
-
-.tool .label {
+.zone-title {
   position: absolute;
   left: 12px;
-  top: 34px;
-  z-index: 4;
-  max-width: 128px;
-  padding: 2px 7px;
+  top: 10px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: #ffffff;
-  background: rgba(44, 58, 91, 0.84);
-  font-size: 12px;
   font-weight: 900;
-  transform: rotateZ(8deg);
-  white-space: nowrap;
 }
 
-.tool .state-light {
+.zone-title b {
+  min-width: 52px;
+  padding: 7px 10px;
+  background: linear-gradient(180deg, #174fc0, #0e328f);
+  font-size: 24px;
+  text-align: center;
+}
+
+.zone-title span {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.layout-zone.b1 .zone-title b {
+  background: linear-gradient(180deg, #148245, #0a5e32);
+}
+
+.rotation-note {
   position: absolute;
-  right: -5px;
-  top: -7px;
+  right: 14px;
+  top: 12px;
+  color: rgba(34, 43, 61, 0.68);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.facility-outline {
+  position: absolute;
+  inset: 54px 18px 18px;
+}
+
+.bay {
+  position: absolute;
+  border: 2px solid rgba(31, 41, 55, 0.5);
+  background: rgba(255,255,255,0.34);
+}
+
+.bay.label::after {
+  content: attr(data-label);
+  position: absolute;
+  inset: 4px;
+  display: grid;
+  place-items: center;
+  color: rgba(31, 41, 55, 0.36);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 900;
+}
+
+.lane {
+  position: absolute;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(31, 41, 55, 0.26);
+}
+
+.machine-tile {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 24px;
+  padding: 3px;
+  border: 2px solid rgba(47, 66, 93, 0.3);
+  background: #c9db4c;
+  color: #182235;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.05;
+  cursor: pointer;
+  transition: opacity 0.18s ease, filter 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 2px 6px rgba(37, 44, 61, 0.12);
+}
+
+.machine-tile.type-dry {
+  background: #bdda45;
+}
+
+.machine-tile.type-wet1 {
+  background: #80d7ed;
+}
+
+.machine-tile.type-wet2 {
+  background: #f3d06a;
+}
+
+.machine-tile.dimmed {
+  opacity: 0.17;
+}
+
+.machine-tile.selected {
+  filter: drop-shadow(0 0 10px #00abc2) brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.machine-tile.marker-target {
+  border-color: #e62433;
+  box-shadow: 0 0 0 2px rgba(230, 36, 51, 0.25), 0 2px 8px rgba(37, 44, 61, 0.16);
+}
+
+.machine-tile .state-light {
+  position: absolute;
+  right: -6px;
+  top: -6px;
   z-index: 6;
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
   border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 0 14px currentColor;
 }
 
-.beacon {
+.machine-tile .marker {
   position: absolute;
-  width: 13px;
-  height: 13px;
+  left: 50%;
+  top: -20px;
+  min-width: 30px;
+  padding: 4px 8px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  animation: blink 1.4s infinite alternate;
+  background: radial-gradient(circle at 30% 30%, #ff93f3, #d64fe8 70%);
+  color: #392052;
+  font-size: 12px;
+  font-weight: 950;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(110, 42, 144, 0.28);
 }
-
-.beacon.cyan { background: var(--cyan); box-shadow: 0 0 16px var(--cyan); }
-.beacon.pink { background: var(--pink); box-shadow: 0 0 16px var(--pink); }
-.beacon.blue { background: var(--blue); box-shadow: 0 0 16px var(--blue); }
 
 .legend {
   display: flex;
@@ -619,12 +702,15 @@ footer {
 
   .main-grid {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 280px repeat(4, 190px);
+    grid-template-rows: 520px repeat(4, 190px);
   }
 
   .factory-panel {
     grid-column: span 2;
-    grid-row: span 1;
+  }
+
+  .layout-map {
+    grid-template-columns: 1fr;
   }
 }
 

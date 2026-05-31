@@ -25,6 +25,7 @@ dist/dashboard.html
 ```
 
 這個檔案已包含 HTML、CSS、JavaScript，不需要 Chart.js、CDN、npm 或 Python server。
+目前 layout 已改為 A1 / B1 互動式機台配置圖，支援 DRY / WET1 / WET2 篩選與機台點選聯動。
 
 或用 Python 標準庫啟動本機伺服器：
 

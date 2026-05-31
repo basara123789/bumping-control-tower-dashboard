@@ -8,7 +8,7 @@ const jsPath = path.join(root, "app.js");
 const distDir = path.join(root, "dist");
 const outputPath = path.join(distDir, "dashboard.html");
 
-const version = "bumping-dashboard-20260527-pipeline";
+const version = "bumping-dashboard-20260531-a1b1-layout";
 const css = fs.readFileSync(cssPath, "utf8");
 const js = fs.readFileSync(jsPath, "utf8");
 let html = fs.readFileSync(indexPath, "utf8");

@@ -50,12 +50,18 @@ const stateColors = {
 };
 
 const machineConfig = [
-  { id: "COATER 01", type: "DRY", x: 92, y: 164, color: "pink", baseUph: 820, baseYield: 98.4, util: 88, statusSeed: 2 },
-  { id: "CCATE 01", type: "WET1", x: 298, y: 82, color: "cyan", baseUph: 760, baseYield: 97.8, util: 84, statusSeed: 7 },
-  { id: "CHEF 02", type: "WET2", x: 526, y: 102, color: "pink", baseUph: 715, baseYield: 97.2, util: 81, statusSeed: 11 },
-  { id: "DEV 03", type: "DRY", x: 396, y: 170, color: "blue", baseUph: 845, baseYield: 98.7, util: 91, statusSeed: 4 },
-  { id: "ETCH 08", type: "WET2", x: 636, y: 196, color: "cyan", baseUph: 700, baseYield: 96.8, util: 79, statusSeed: 15 },
-  { id: "DRY 12", type: "DRY", x: 204, y: 34, color: "blue", baseUph: 835, baseYield: 98.9, util: 89, statusSeed: 19 }
+  { id: "OMN005", label: "OMN 005", marker: 1, zone: "B1", type: "DRY", x: 72, y: 45, w: 9, h: 10, baseUph: 805, baseYield: 98.3, util: 86, statusSeed: 2 },
+  { id: "WCG304", label: "WCG 304", marker: 2, zone: "B1", type: "WET1", x: 62, y: 77, w: 10, h: 8, baseUph: 760, baseYield: 97.9, util: 83, statusSeed: 5 },
+  { id: "COT204", label: "COT 204", marker: 3, zone: "B1", type: "DRY", x: 12, y: 41, w: 8, h: 15, baseUph: 828, baseYield: 98.5, util: 88, statusSeed: 7 },
+  { id: "DSP202", label: "DSP 202", marker: 4, zone: "B1", type: "WET2", x: 39, y: 61, w: 8, h: 9, baseUph: 720, baseYield: 97.1, util: 80, statusSeed: 11 },
+  { id: "DET205", label: "DET 205", marker: 5, zone: "B1", type: "DRY", x: 11, y: 58, w: 9, h: 9, baseUph: 835, baseYield: 98.7, util: 90, statusSeed: 13 },
+  { id: "DES207", label: "DES 207", marker: 6, zone: "B1", type: "WET2", x: 20, y: 70, w: 9, h: 10, baseUph: 700, baseYield: 96.9, util: 79, statusSeed: 17 },
+  { id: "OVK205", label: "OVK 205", marker: 7, zone: "B1", type: "WET1", x: 45, y: 45, w: 9, h: 9, baseUph: 755, baseYield: 97.8, util: 84, statusSeed: 19 },
+  { id: "SPO203", label: "SPO 203", marker: 8, zone: "B1", type: "WET1", x: 18, y: 30, w: 11, h: 9, baseUph: 770, baseYield: 98.0, util: 85, statusSeed: 23 },
+  { id: "LAM-PLL205", label: "Lam PLL205", marker: 9, zone: "A1", type: "WET1", x: 47, y: 36, w: 10, h: 15, baseUph: 748, baseYield: 97.7, util: 82, statusSeed: 29 },
+  { id: "FRP202", label: "FRP 202", marker: 10, zone: "A1", type: "WET2", x: 63, y: 40, w: 22, h: 12, baseUph: 708, baseYield: 97.0, util: 78, statusSeed: 31 },
+  { id: "PSG201", label: "PSG 201", marker: 11, zone: "B1", type: "DRY", x: 60, y: 52, w: 10, h: 9, baseUph: 815, baseYield: 98.4, util: 87, statusSeed: 37 },
+  { id: "ACG204", label: "ACG 204", marker: 12, zone: "B1", type: "WET2", x: 83, y: 48, w: 10, h: 11, baseUph: 695, baseYield: 96.8, util: 77, statusSeed: 41 }
 ];
 
 const uiState = {
@@ -296,30 +302,62 @@ function cacheElements() {
 }
 
 function setupFactory() {
+  const map = document.createElement("div");
+  map.className = "layout-map";
+  map.innerHTML = `
+    <section class="layout-zone a1" data-zone="A1">
+      <div class="zone-title"><b>A1</b><span>機台配置圖逆時針旋轉 90° 對應廠務 Layout</span></div>
+      <div class="rotation-note">A1 Rotated 90° CCW</div>
+      <div class="facility-outline">
+        <div class="bay label" data-label="PLATING" style="left:57%;top:50%;width:34%;height:20%"></div>
+        <div class="bay" style="left:4%;top:17%;width:22%;height:64%"></div>
+        <div class="bay" style="left:31%;top:17%;width:24%;height:31%"></div>
+        <div class="bay" style="left:31%;top:55%;width:22%;height:28%"></div>
+        <div class="lane" style="left:2%;top:84%;width:92%;height:7%"></div>
+        <div class="lane" style="left:56%;top:17%;width:4%;height:68%"></div>
+      </div>
+    </section>
+    <section class="layout-zone b1" data-zone="B1">
+      <div class="zone-title"><b>B1</b><span>機台配置圖逆時針旋轉 90° 對應廠務 Layout</span></div>
+      <div class="rotation-note">B1 Rotated 90° CCW</div>
+      <div class="facility-outline">
+        <div class="bay label" data-label="SPUTTER" style="left:4%;top:18%;width:18%;height:22%"></div>
+        <div class="bay label" data-label="PHOTO" style="left:18%;top:48%;width:20%;height:38%"></div>
+        <div class="bay label" data-label="OVEN" style="left:32%;top:18%;width:24%;height:26%"></div>
+        <div class="bay label" data-label="SOLDER B" style="left:38%;top:51%;width:20%;height:35%"></div>
+        <div class="bay label" data-label="PLATING" style="left:63%;top:24%;width:31%;height:46%"></div>
+        <div class="lane" style="left:2%;top:88%;width:94%;height:7%"></div>
+        <div class="lane" style="left:56%;top:18%;width:4%;height:68%"></div>
+      </div>
+    </section>
+  `;
+  runtimeState.els.factoryScene.appendChild(map);
+
   machineConfig.forEach((machine, index) => {
-    const tool = document.createElement("div");
-    tool.className = "tool";
-    tool.dataset.index = index;
-    tool.style.left = `${machine.x}px`;
-    tool.style.top = `${machine.y}px`;
-    tool.innerHTML = `
-      <div class="roof"></div>
-      <div class="body"></div>
-      <div class="state-light"></div>
-      <div class="label">${machine.type} ${machine.id}</div>
-      <i class="beacon ${machine.color}" style="left:12px;top:72px"></i>
-      <i class="beacon cyan" style="left:78px;top:82px;animation-delay:${index * 0.13}s"></i>
-      <i class="beacon blue" style="left:42px;top:92px;animation-delay:${index * 0.21}s"></i>
+    const zone = map.querySelector(`[data-zone="${machine.zone}"]`);
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = `machine-tile type-${machine.type.toLowerCase()}`;
+    tile.dataset.index = index;
+    tile.style.left = `${machine.x}%`;
+    tile.style.top = `${machine.y}%`;
+    tile.style.width = `${machine.w}%`;
+    tile.style.height = `${machine.h}%`;
+    tile.innerHTML = `
+      <span class="marker">${machine.marker}</span>
+      <span class="state-light"></span>
+      <span>${machine.label}</span>
     `;
-    tool.addEventListener("click", () => {
+    tile.addEventListener("click", () => {
       uiState.selectedMachine = index;
+      addEvent("ack", simulationState.snapshots[index], `${machine.zone} marker ${machine.marker} selected`);
       renderDashboard();
     });
-    tool.addEventListener("mousemove", event => showTooltip(event, index));
-    tool.addEventListener("mouseleave", hideTooltip);
-    runtimeState.els.factoryScene.appendChild(tool);
+    tile.addEventListener("mousemove", event => showTooltip(event, index));
+    tile.addEventListener("mouseleave", hideTooltip);
+    zone.appendChild(tile);
   });
-  runtimeState.els.tools = [...document.querySelectorAll(".tool")];
+  runtimeState.els.tools = [...document.querySelectorAll(".machine-tile")];
 }
 
 function showTooltip(event, index) {
@@ -332,8 +370,9 @@ function showTooltip(event, index) {
   const rawTop = event.clientY - sceneRect.top - 6;
 
   tooltip.innerHTML = `
-    <strong>${machine.type} ${machine.id}</strong>
+    <strong>${machine.zone}-${machine.marker} ${machine.label}</strong>
     Status: ${machine.status}<br>
+    Type: ${machine.type}<br>
     UPH: ${machine.uph}<br>
     Yield: ${machine.yield.toFixed(1)}%<br>
     Utilization: ${machine.util.toFixed(0)}%<br>
@@ -645,7 +684,7 @@ function renderKPIs(data) {
 function renderEquipment(data) {
   const { machine } = data;
   const { machineName, machineState, runTime, lastPm, lotType, toolKpi, machineStateDot } = runtimeState.els;
-  machineName.textContent = machine.id;
+  machineName.textContent = `${machine.zone}-${machine.marker} ${machine.label}`;
   machineState.textContent = machine.status;
   runTime.textContent = machine.runTime;
   lastPm.textContent = machine.lastPm;
@@ -701,12 +740,14 @@ function renderCharts(data) {
 }
 
 function renderFactory(data) {
-  runtimeState.els.tools.forEach((tool, index) => {
+  runtimeState.els.tools.forEach(tool => {
+    const index = Number(tool.dataset.index);
     const machine = data.machines[index];
     const visible = uiState.filter === "ALL" || machine.type === uiState.filter;
     const light = tool.querySelector(".state-light");
     tool.classList.toggle("dimmed", !visible);
-    tool.style.filter = index === uiState.selectedMachine ? "drop-shadow(0 0 12px #00abc2) brightness(1.08)" : "";
+    tool.classList.toggle("selected", index === uiState.selectedMachine);
+    tool.classList.toggle("marker-target", Boolean(machine.marker));
     light.style.background = stateColors[machine.status];
     light.style.color = stateColors[machine.status];
   });

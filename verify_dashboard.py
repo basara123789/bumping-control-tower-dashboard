@@ -4,10 +4,11 @@ from pathlib import Path
 
 
 REQUIRED_MARKERS = [
-    "VERSION: bumping-dashboard-20260527-pipeline",
+    "VERSION: bumping-dashboard-20260531-a1b1-layout",
     "NO CHART.JS REQUIRED",
     "SINGLE FILE OFFLINE BUILD",
     "Production KPI Overview",
+    "A1 / B1 Interactive Factory Layout",
     "DRY",
     "WET1",
     "WET2",
@@ -16,6 +17,10 @@ REQUIRED_MARKERS = [
     "buildKpis",
     "buildEnvironment",
     "buildAlarmTable",
+    "layout-zone",
+    "machine-tile",
+    "Lam PLL205",
+    "FRP 202",
     "canvas id=\"alarmTrend\"",
     "canvas id=\"radarChart\"",
 ]
